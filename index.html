@@ -860,6 +860,33 @@
       padding: 12px 20px 24px 20px;
     }
 
+    .circle-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-card);
+      background: var(--bg-surface-variant);
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+      outline: none;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .circle-close-btn:hover {
+      background: var(--primary);
+      color: var(--text-on-primary);
+      transform: scale(1.05);
+    }
+    .circle-close-btn:active {
+      transform: scale(0.95);
+    }
+
     /* Toast */
     .toast-notice {
       position: absolute;
@@ -3820,19 +3847,14 @@ Keep answers short and warm (1-2 sentences for audio).`;
         }
 
         sheet.innerHTML = `
-          <!-- Top Bar: Back / Edit / Delete -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <button class="btn btn-outline" id="detail-back-btn" style="padding: 4px 12px; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-              <span>←</span> Close
+          <!-- Top Bar: Edit Details & Circular Close (Top Right) -->
+          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-bottom: 14px;">
+            <button class="btn btn-outline" id="detail-toggle-edit-btn" style="padding: 5px 12px; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; gap: 5px; border-radius: var(--radius-pill);">
+              <span>✏️</span> Edit Details
             </button>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn btn-outline" id="detail-toggle-edit-btn" style="padding: 4px 10px; font-size: 11.5px; display: flex; align-items: center; gap: 4px;">
-                <span>✏️</span> Edit Details
-              </button>
-              <button class="btn btn-danger" id="modal-del-btn" style="padding: 4px 10px; font-size: 11.5px; display: flex; align-items: center; gap: 4px;">
-                <span>🗑️</span> Remove
-              </button>
-            </div>
+            <button class="circle-close-btn" id="detail-close-circle-btn" title="Close" aria-label="Close">
+              ✕
+            </button>
           </div>
 
           <!-- Edit Details Form (Hidden by default) -->
@@ -4052,19 +4074,22 @@ Keep answers short and warm (1-2 sentences for audio).`;
             </div>
           ` : ''}
 
-          <!-- Done Button -->
-          <div style="padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+          <!-- Bottom Action Buttons: Done & Safe Bottom Delete -->
+          <div style="padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 10px;">
             <button class="btn btn-primary" id="modal-close-btn" style="width: 100%; padding: 10px; font-size: 14px; font-weight: 800;">Done</button>
+            <button class="btn btn-outline" id="modal-del-btn" style="width: 100%; padding: 9px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--accent-terracotta); border: 1.5px solid rgba(230, 74, 25, 0.4); background: rgba(230, 74, 25, 0.05); border-radius: var(--radius-sm);">
+              <span>🗑️</span> Remove Book from Library
+            </button>
           </div>
         `;
 
         // 1. Navigation / Close buttons
-        document.getElementById('detail-back-btn')?.addEventListener('click', () => {
+        const closeDetail = () => {
+          Haptics.light();
           document.getElementById('book-detail-sheet').classList.remove('open');
-        });
-        document.getElementById('modal-close-btn')?.addEventListener('click', () => {
-          document.getElementById('book-detail-sheet').classList.remove('open');
-        });
+        };
+        document.getElementById('detail-close-circle-btn')?.addEventListener('click', closeDetail);
+        document.getElementById('modal-close-btn')?.addEventListener('click', closeDetail);
 
         // 2. Edit Book Details toggle & save
         const editWrap = document.getElementById('detail-edit-form-wrap');
