@@ -2487,6 +2487,10 @@
           await this.setClientId(providedClientId);
         }
         const clientId = this.clientId;
+        if (window.location.protocol === 'file:' || window.location.protocol === 'content:' || window.location.origin === 'null') {
+          throw new Error('Google OAuth requires an HTTP/HTTPS web origin. Please open the app via https://bradlchr.github.io/tomi-web/ (Google strictly blocks sign-in from local content:// and file:// storage).');
+        }
+
         if (!clientId) {
           throw new Error('MISSING_CLIENT_ID');
         }
