@@ -9,6 +9,8 @@
   <meta name="description" content="Tomi — Mid-Century Modern personal reading companion, book tracker, barcode scanner, and Gemini AI assistant.">
   <title>Tomi — Personal Reading Companion</title>
 
+  <!-- Google Identity Services (OAuth & Drive Sync) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -106,7 +108,7 @@
     }
 
     /* ==========================================================================
-       2. RESET & PIXEL 11 PRO FRAME
+       2. FLUID RESPONSIVE CONTAINER & MOBILE OPTIMIZATION
        ========================================================================== */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -115,126 +117,54 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    html, body {
-      height: 100%;
+    html {
+      box-sizing: border-box;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
       width: 100%;
-      overflow: hidden;
-      background-color: #12100E;
+      background-color: var(--bg-app);
       color: var(--text-main);
       font-family: var(--font-sans);
       font-size: 15px;
       line-height: 1.45;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
-    .app-host-container {
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at 50% 20%, #2A2420 0%, #151210 100%);
-      position: relative;
-      overflow: hidden;
+    @media (min-width: 841px) {
+      body {
+        background-color: #ECE5DC;
+      }
+      [data-theme="dark"] body {
+        background-color: #14110F;
+      }
     }
 
-    /* Desktop View Controls */
-    .desktop-device-toolbar {
-      position: absolute;
-      top: 18px;
-      right: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 100;
-      background: rgba(42, 36, 32, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(215, 184, 153, 0.2);
-      padding: 8px 16px;
-      border-radius: var(--radius-pill);
-      color: var(--mcm-paper);
-      font-size: 13px;
-      font-weight: 500;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    }
-    .device-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--mcm-mustard);
-      font-weight: 600;
-    }
-    .device-toggle-btn {
-      background: rgba(255, 255, 255, 0.12);
-      border: none;
-      color: #FFFFFF;
-      padding: 4px 10px;
-      border-radius: var(--radius-pill);
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.2s ease;
-    }
-    .device-toggle-btn:hover {
-      background: var(--mcm-terracotta);
-    }
-
-    /* Pixel 11 Pro Device Frame */
-    .pixel-device-frame {
-      width: var(--pixel-width);
-      height: min(var(--pixel-height), 96dvh);
-      max-height: 940px;
-      background-color: var(--bg-app);
-      border-radius: var(--pixel-radius);
-      position: relative;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 10px #1E1B18, 0 0 0 12px #38312B;
+    /* App Shell - Fluid, mobile-first, and centered on larger displays */
+    .tomi-app {
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      max-width: 840px;
+      margin: 0 auto;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      background-color: var(--bg-app);
+      color: var(--text-main);
     }
 
-    .app-host-container.full-window .pixel-device-frame {
-      width: 100vw;
-      height: 100dvh;
-      max-height: 100dvh;
-      border-radius: 0;
-      box-shadow: none;
-      border: none;
-    }
-
-    .pixel-camera-cutout {
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 14px;
-      height: 14px;
-      background-color: #000000;
-      border-radius: 50%;
-      z-index: 1000;
-      pointer-events: none;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .app-host-container.full-window .pixel-camera-cutout {
-      display: none;
-    }
-
-    @media (max-width: 540px) {
-      .app-host-container { background: var(--bg-app); }
-      .desktop-device-toolbar { display: none; }
-      .pixel-device-frame {
-        width: 100vw !important;
-        height: 100dvh !important;
-        max-height: 100dvh !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        border: none !important;
+    @media (min-width: 841px) {
+      .tomi-app {
+        box-shadow: 0 0 50px rgba(31, 27, 24, 0.12);
+        border-left: 1px solid var(--border-card);
+        border-right: 1px solid var(--border-card);
       }
-      .pixel-camera-cutout { display: none; }
     }
-
     /* App Shell */
     .tomi-app {
       flex: 1;
@@ -249,10 +179,12 @@
     }
 
     .tomi-header {
+      position: sticky;
+      top: 0;
       height: calc(var(--header-height) + var(--sat));
-      padding-top: max(var(--sat), 12px);
-      padding-left: 20px;
-      padding-right: 20px;
+      padding-top: max(var(--sat), 10px);
+      padding-left: clamp(16px, 4vw, 24px);
+      padding-right: clamp(16px, 4vw, 24px);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -331,13 +263,15 @@
     }
 
     /* ==========================================================================
-       3. NAVIGATION BAR & FAB
+       3. NAVIGATION BAR, FAB & GOOGLE SYNC
        ========================================================================== */
     .tomi-nav {
-      position: absolute;
+      position: fixed;
       bottom: 0;
-      left: 0;
-      right: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 840px;
       height: calc(var(--nav-height) + var(--sab));
       padding-bottom: max(var(--sab), 8px);
       padding-left: 12px;
@@ -388,8 +322,8 @@
     .nav-item.active .nav-label { color: var(--primary); font-weight: 800; }
 
     .fab-voice {
-      position: absolute;
-      right: 20px;
+      position: fixed;
+      right: max(16px, calc((100vw - 840px) / 2 + 16px));
       bottom: calc(var(--nav-height) + var(--sab) + 16px);
       width: 56px;
       height: 56px;
@@ -402,7 +336,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      z-index: 35;
+      z-index: 45;
       transition: all 0.25s var(--ease-spring);
     }
     .fab-voice:active { transform: translate(2px, 2px) scale(0.95); }
@@ -422,20 +356,65 @@
       100% { transform: scale(0.96); opacity: 0.8; }
     }
 
-    .pixel-gesture-pill {
-      position: absolute;
-      bottom: 6px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 72px;
-      height: 4px;
-      border-radius: 2px;
-      background: rgba(43, 36, 32, 0.3);
-      pointer-events: none;
-      z-index: 50;
+    /* Google Sign-in & Sync UI */
+    .google-signin-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #FFFFFF;
+      color: #3C4043;
+      border: 1.5px solid rgba(93, 64, 55, 0.22);
+      border-radius: var(--radius-pill);
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      transition: all 0.2s ease;
     }
-    [data-theme="dark"] .pixel-gesture-pill { background: rgba(241, 234, 226, 0.35); }
+    .google-signin-btn:hover {
+      background: #F8F9FA;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    }
+    .google-signin-btn:active {
+      transform: scale(0.98);
+    }
+    [data-theme="dark"] .google-signin-btn {
+      background: #2A2420;
+      color: #FAF5EC;
+      border-color: rgba(215, 184, 153, 0.3);
+    }
+    [data-theme="dark"] .google-signin-btn:hover {
+      background: #362E29;
+    }
 
+    .sync-status-box {
+      background: var(--bg-surface-variant);
+      border: 1.5px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+    }
+    .sync-indicator-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--secondary);
+      flex-shrink: 0;
+    }
+    .sync-indicator-dot.syncing {
+      background: var(--mcm-mustard);
+      animation: pulse-sync 1s infinite alternate;
+    }
+    .sync-indicator-dot.error {
+      background: var(--tertiary);
+    }
+    @keyframes pulse-sync {
+      0% { transform: scale(0.85); opacity: 0.6; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
     /* ==========================================================================
        4. COMPONENTS & PAPER CARDS
        ========================================================================== */
@@ -686,6 +665,24 @@
       justify-content: flex-end;
     }
     .bottom-sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+    .bottom-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 16, 14, 0.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .bottom-sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
     .bottom-sheet {
       background: var(--bg-surface);
       border-top-left-radius: 28px;
@@ -1262,22 +1259,7 @@
   </style>
 </head>
 <body>
-
-  <div class="app-host-container">
-    <!-- Desktop Toggle Toolbar -->
-    <div class="desktop-device-toolbar">
-      <div class="device-badge">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
-        <span>Google Pixel 11 Pro</span>
-      </div>
-      <button class="device-toggle-btn" id="toggle-device-view">🖥️ Full Window</button>
-    </div>
-
-    <!-- Phone Frame -->
-    <div class="pixel-device-frame">
-      <div class="pixel-camera-cutout"></div>
-
-      <div class="tomi-app">
+  <div class="tomi-app">
         <!-- Header -->
         <header class="tomi-header">
           <div class="brand-wrap">
@@ -1480,20 +1462,81 @@
                 </div>
               </div>
 
+              <!-- Google Account & Drive AppData Sync -->
+              <div class="settings-group" id="group-google-sync">
+                <div class="group-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3z"/>
+                  </svg>
+                  <span>Google Account & Cross-Device Sync</span>
+                </div>
+
+                <!-- Signed Out View -->
+                <div id="google-signed-out-view">
+                  <p class="setting-desc" style="margin-bottom: 12px; line-height: 1.5;">
+                    Sign in with your Google account to automatically synchronize your reading library, progress, notes, and goals across your Android phone and desktop using your private Google Drive AppData folder (<code>tomi_cloud_sync.json</code>).
+                  </p>
+                  <button type="button" class="google-signin-btn" id="btn-google-signin">
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                      <path fill="none" d="M0 0h48v48H0z"/>
+                    </svg>
+                    <span>Sign in with Google</span>
+                  </button>
+                  <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" class="btn-link" id="btn-oauth-setup-link" style="font-size: 11.5px; color: var(--secondary); background: none; border: none; cursor: pointer; text-decoration: underline;">
+                      ℹ️ Google Cloud Web Client ID Setup
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Signed In View -->
+                <div id="google-signed-in-view" style="display: none;">
+                  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <div id="google-user-avatar" style="width: 44px; height: 44px; border-radius: 50%; background: var(--secondary); color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.15);"></div>
+                    <div style="flex: 1; min-width: 0;">
+                      <div id="google-user-name" style="font-weight: 800; font-size: 14px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                      <div id="google-user-email" style="font-size: 11.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+                    </div>
+                    <button type="button" class="btn btn-outline" id="btn-google-signout" style="padding: 5px 10px; font-size: 11px;">Sign out</button>
+                  </div>
+
+                  <!-- Sync Status Box -->
+                  <div class="sync-status-box" id="google-sync-status-box">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div class="sync-indicator-dot" id="google-sync-dot"></div>
+                      <span id="google-sync-status-text" style="font-size: 12px; font-weight: 700; color: var(--text-main);">Connected to Google Drive AppData</span>
+                    </div>
+                    <div id="google-sync-subtext" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                      Database: tomi_cloud_sync.json • Synced across Android & Web
+                    </div>
+                  </div>
+
+                  <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button type="button" class="btn btn-primary" id="btn-sync-now" style="flex: 1; font-size: 12px;">
+                      🔄 Sync Now
+                    </button>
+                    <button type="button" class="btn btn-outline" id="btn-open-oauth-settings" style="font-size: 12px;">
+                      ⚙️ Client ID
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Gemini AI Section -->
               <div class="settings-group">
                 <div class="group-title">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                  <span>Gemini AI & Google Books</span>
+                  <span>Gemini AI Reading Companion</span>
                 </div>
                 <div style="padding: 6px 0;">
                   <span class="setting-name">Gemini API Key</span>
-                  <span class="setting-desc" style="display: block; margin-top: 2px;">Powers voice recommendations and conversational book logging</span>
+                  <span class="setting-desc" style="display: block; margin-top: 2px;">Powers voice recommendations, page tracking, and conversational book insights</span>
                   <input type="password" id="setting-gemini-key" class="setting-input-text" placeholder="AIzaSy..." />
-                </div>
-                <div style="padding: 8px 0 2px 0;">
-                  <span class="setting-name">Google Books API Key</span>
-                  <span class="setting-desc" style="display: block; margin-top: 2px;">Optional, provides higher volume search rate limits</span>
-                  <input type="password" id="setting-books-key" class="setting-input-text" placeholder="AIzaSy..." />
+                  <span style="font-size: 11px; color: var(--secondary); font-weight: 600; display: block; margin-top: 5px;">✦ Auto-configured and active with your personal Gemini key</span>
                 </div>
               </div>
 
@@ -1577,7 +1620,6 @@
           </button>
         </nav>
 
-        <div class="pixel-gesture-pill"></div>
 
         <div class="toast-notice" id="toast-notice">
           <div class="toast-icon">✦</div>
@@ -1608,7 +1650,7 @@
                 <div class="scanner-reticle"><div class="scanner-laser"></div></div>
               </div>
               <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 12px;">
-                Point your Google Pixel 11 Pro camera at any book's ISBN barcode.
+                Point your phone or laptop camera at any book's ISBN barcode.
               </p>
             </div>
           </div>
@@ -1665,6 +1707,45 @@
           </div>
         </div>
 
+        <!-- Google OAuth & Sync Setup Modal -->
+        <div class="bottom-sheet-backdrop" id="google-oauth-sheet">
+          <div class="bottom-sheet">
+            <div class="sheet-handle-bar"><div class="sheet-handle-pill"></div></div>
+            <div class="sheet-content">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-family: var(--font-serif); font-size: 18px; font-weight: 800;">Google Sign-In & Sync Setup</h3>
+                <button type="button" class="btn btn-outline" id="btn-oauth-sheet-close" style="padding: 4px 10px; font-size: 11px;">✕ Close</button>
+              </div>
+              <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+                Tomi Web synchronizes with the Android native app via your private Google Drive AppData folder (<code>tomi_cloud_sync.json</code>).
+              </p>
+              <div style="background: var(--bg-surface-variant); border: 1px solid var(--border-card); border-radius: var(--radius-sm); padding: 12px; font-size: 12px; line-height: 1.5; margin-bottom: 14px;">
+                <div style="font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Quick Setup Guide:</div>
+                1. Open <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color: var(--secondary); font-weight: 700;">Google Cloud Console Credentials</a>.<br>
+                2. Click <strong>Create Credentials → OAuth client ID</strong>.<br>
+                3. Choose Application Type: <strong>Web application</strong>.<br>
+                4. Under <strong>Authorized JavaScript origins</strong>, add:<br>
+                &nbsp;&nbsp;• <code>https://bradlchr.github.io</code><br>
+                &nbsp;&nbsp;• <code>http://localhost:8080</code> (for local testing)<br>
+                5. In <strong>Enabled APIs</strong>, make sure <em>Google Drive API</em> is enabled.<br>
+                6. Paste your Web Client ID below.
+              </div>
+              <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-subtle); text-transform: uppercase;">OAuth 2.0 Web Client ID</label>
+                <input type="text" id="input-google-client-id" class="setting-input-text" value="354727764260-m1r7sqcn84bi7vsskl2crvl1tkpapbsg.apps.googleusercontent.com" />
+              </div>
+              <div style="margin-bottom: 14px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-subtle); text-transform: uppercase;">Direct OAuth Access Token (Optional / Debug)</label>
+                <input type="password" id="input-direct-access-token" class="setting-input-text" placeholder="ya29.a0..." />
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-outline" style="flex: 1;" id="btn-oauth-cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" style="flex: 2;" id="btn-oauth-save">Save & Connect</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="bottom-sheet-backdrop" id="voice-assistant-sheet">
           <div class="bottom-sheet">
             <div class="sheet-handle-bar"><div class="sheet-handle-pill"></div></div>
@@ -1697,8 +1778,6 @@
           </div>
         </div>
 
-      </div>
-    </div>
   </div>
 
   <!-- ==========================================================================
@@ -1935,7 +2014,48 @@
         return new Promise((resolve) => {
           const tx = this.db.transaction('settings', 'readonly');
           const req = tx.objectStore('settings').get(k);
-          req.onsuccess = () => resolve(req.result ? req.result.value : null);
+          req.onsuccess = () => {
+            if (req.result && req.result.value !== undefined) {
+              resolve(req.result.value);
+            } else if (k === 'gemini_api_key') {
+              resolve('AIzaSyCJ2OYvLYFGuQwn3_pMDcznm_CLF_0VThc');
+            } else if (k === 'google_client_id') {
+              resolve('354727764260-m1r7sqcn84bi7vsskl2crvl1tkpapbsg.apps.googleusercontent.com');
+            } else {
+              resolve(null);
+            }
+          };
+        });
+      }
+
+      async replaceAll(newBooks, newLogs) {
+        await this.init();
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction(['books', 'reading_logs'], 'readwrite');
+          const bStore = tx.objectStore('books');
+          const lStore = tx.objectStore('reading_logs');
+          bStore.clear();
+          lStore.clear();
+          for (const b of newBooks) {
+            const copy = { ...b };
+            if (b.id) {
+              bStore.put(b);
+            } else {
+              delete copy.id;
+              bStore.add(copy);
+            }
+          }
+          for (const l of newLogs) {
+            if (l.id) {
+              lStore.put(l);
+            } else {
+              const logCopy = { ...l };
+              delete logCopy.id;
+              lStore.add(logCopy);
+            }
+          }
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = (e) => reject(e.target.error);
         });
       }
 
@@ -1964,11 +2084,9 @@
       if (!query || !query.trim()) return [];
       const q = query.trim();
 
-      // Google Books API
+      // Google Books API (Free unauthenticated endpoint with standard limits)
       try {
-        const apiKey = (await db.getSetting('google_books_api_key')) || '';
-        const keyParam = apiKey ? `&key=${encodeURIComponent(apiKey)}` : '';
-        const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=16&printType=books${keyParam}`);
+        const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=16&printType=books`);
         if (res.ok) {
           const data = await res.json();
           if (data.items && data.items.length > 0) {
@@ -2022,6 +2140,425 @@
       const clean = isbn.replace(/[^0-9X]/gi, '');
       const results = await searchOnlineBooks(`isbn:${clean}`);
       return results.length > 0 ? results[0] : null;
+    }
+
+    // --- 4.1 GOOGLE DRIVE APPDATA CLOUD SYNC (ANDROID PARITY) ---
+    const DEFAULT_GEMINI_KEY = 'AIzaSyCJ2OYvLYFGuQwn3_pMDcznm_CLF_0VThc';
+    const DEFAULT_GOOGLE_CLIENT_ID = '354727764260-m1r7sqcn84bi7vsskl2crvl1tkpapbsg.apps.googleusercontent.com';
+    const SYNC_FILE_NAME = 'tomi_cloud_sync.json';
+
+    function norm(s) {
+      return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function mergeBooks(local, cloud) {
+      const result = [];
+      const visitedCloudIds = new Set();
+
+      for (const loc of local) {
+        const match = cloud.find(c =>
+          (loc.isbn && c.isbn && String(loc.isbn).trim() === String(c.isbn).trim()) ||
+          (norm(loc.title) === norm(c.title) && norm(loc.authors) === norm(c.authors))
+        );
+
+        if (match) {
+          visitedCloudIds.add(match.id);
+          const maxPages = Math.max(Number(loc.pageCount || 0), Number(match.pageCount || 0));
+          const maxProgress = Math.max(Number(loc.currentPage || 0), Number(match.currentPage || 0));
+          
+          let status = 'TBR';
+          if (loc.status === 'FINISHED' || match.status === 'FINISHED') status = 'FINISHED';
+          else if (loc.status === 'READING' || match.status === 'READING') status = 'READING';
+          else if (loc.status === 'DNF' || match.status === 'DNF') status = 'DNF';
+          else status = 'TBR';
+
+          const parseNotes = (n) => {
+            if (!n) return [];
+            if (Array.isArray(n)) return n;
+            try { return JSON.parse(n); } catch(e) { return []; }
+          };
+
+          const localNotes = parseNotes(loc.notes);
+          const cloudNotes = parseNotes(match.notes);
+          const notesMap = new Map();
+          [...localNotes, ...cloudNotes].forEach(n => {
+            if (n && n.id) notesMap.set(String(n.id), n);
+          });
+          const mergedNotes = Array.from(notesMap.values());
+
+          const startedDates = [loc.startedDate, match.startedDate].filter(d => d != null && d > 0);
+          const completedDates = [loc.completedDate, match.completedDate].filter(d => d != null && d > 0);
+
+          result.push({
+            ...loc,
+            pageCount: maxPages,
+            currentPage: (status === 'FINISHED' && maxPages > 0) ? maxPages : Math.min(maxProgress, maxPages > 0 ? maxPages : 99999),
+            status: status,
+            rating: Math.max(Number(loc.rating || 0), Number(match.rating || 0)),
+            review: (loc.review && loc.review.trim()) ? loc.review : (match.review || ''),
+            notes: JSON.stringify(mergedNotes),
+            coverUrl: loc.coverUrl || match.coverUrl || null,
+            startedDate: startedDates.length > 0 ? Math.min(...startedDates) : null,
+            completedDate: completedDates.length > 0 ? Math.max(...completedDates) : null,
+          });
+        } else {
+          result.push({
+            ...loc,
+            notes: typeof loc.notes === 'string' ? loc.notes : JSON.stringify(loc.notes || [])
+          });
+        }
+      }
+
+      for (const c of cloud) {
+        if (!visitedCloudIds.has(c.id)) {
+          const alreadyMerged = result.some(r =>
+            (r.isbn && c.isbn && String(r.isbn).trim() === String(c.isbn).trim()) ||
+            (norm(r.title) === norm(c.title) && norm(r.authors) === norm(c.authors))
+          );
+          if (!alreadyMerged) {
+            result.push({
+              ...c,
+              notes: typeof c.notes === 'string' ? c.notes : JSON.stringify(c.notes || [])
+            });
+          }
+        }
+      }
+
+      return result;
+    }
+
+    function mergeLogs(local, cloud) {
+      const map = new Map();
+      const key = (l) => `${l.bookId}_${l.epochDay}`;
+      for (const l of local) map.set(key(l), { ...l });
+      for (const c of cloud) {
+        const k = key(c);
+        const existing = map.get(k);
+        if (!existing) {
+          map.set(k, { ...c });
+        } else {
+          map.set(k, {
+            ...existing,
+            pagesRead: Math.max(Number(existing.pagesRead || 0), Number(c.pagesRead || 0)),
+            minutes: Math.max(Number(existing.minutes || 0), Number(c.minutes || 0)),
+          });
+        }
+      }
+      return Array.from(map.values());
+    }
+
+    class GoogleCloudSync {
+      constructor(db, onStateChange) {
+        this.db = db;
+        this.onStateChange = onStateChange || (() => {});
+        this.accessToken = null;
+        this.user = null;
+        this.clientId = '';
+        this.syncState = { status: 'idle', message: '', lastSynced: null, bookCount: 0 };
+        this._debounceTimer = null;
+      }
+
+      async init() {
+        this.clientId = (await this.db.getSetting('google_client_id')) || DEFAULT_GOOGLE_CLIENT_ID;
+        const savedUser = await this.db.getSetting('google_user');
+        const savedToken = await this.db.getSetting('google_access_token');
+        const savedExpiry = await this.db.getSetting('google_token_expiry');
+        const lastSyncTime = await this.db.getSetting('google_last_sync');
+
+        if (savedUser) {
+          this.user = savedUser;
+          if (savedToken && savedExpiry && Date.now() < Number(savedExpiry)) {
+            this.accessToken = savedToken;
+          }
+        }
+
+        if (lastSyncTime) {
+          this.syncState.lastSynced = Number(lastSyncTime);
+        }
+
+        this.notify();
+
+        if (this.accessToken) {
+          this.sync().catch(e => console.warn('Auto-sync on boot:', e));
+        }
+      }
+
+      notify() {
+        this.onStateChange({
+          user: this.user,
+          isSignedIn: !!this.user,
+          hasValidToken: !!this.accessToken,
+          syncState: this.syncState,
+          clientId: this.clientId
+        });
+      }
+
+      async setClientId(id) {
+        this.clientId = (id || '').trim();
+        await this.db.setSetting('google_client_id', this.clientId);
+        this.notify();
+      }
+
+      async signIn(providedClientId = null) {
+        if (providedClientId) {
+          await this.setClientId(providedClientId);
+        }
+        const clientId = this.clientId;
+        if (!clientId) {
+          throw new Error('MISSING_CLIENT_ID');
+        }
+
+        if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+          throw new Error('Google Identity Services SDK is loading. Please check internet connection.');
+        }
+
+        return new Promise((resolve, reject) => {
+          try {
+            const tokenClient = window.google.accounts.oauth2.initTokenClient({
+              client_id: clientId,
+              scope: 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email openid',
+              callback: async (resp) => {
+                if (resp.error) {
+                  this.syncState = { status: 'error', message: `Sign-in error: ${resp.error_description || resp.error}` };
+                  this.notify();
+                  return reject(new Error(resp.error_description || resp.error));
+                }
+                this.accessToken = resp.access_token;
+                const expiresIn = (Number(resp.expires_in) || 3599) * 1000;
+                await this.db.setSetting('google_access_token', this.accessToken);
+                await this.db.setSetting('google_token_expiry', Date.now() + expiresIn);
+
+                await this.fetchUserInfo();
+                this.notify();
+
+                await this.sync();
+                resolve(this.user);
+              }
+            });
+            tokenClient.requestAccessToken({ prompt: '' });
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }
+
+      async signInWithAccessToken(token) {
+        this.accessToken = token.trim();
+        await this.db.setSetting('google_access_token', this.accessToken);
+        await this.db.setSetting('google_token_expiry', Date.now() + 3600000);
+        await this.fetchUserInfo();
+        this.notify();
+        await this.sync();
+      }
+
+      async fetchUserInfo() {
+        try {
+          const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${this.accessToken}` }
+          });
+          if (res.ok) {
+            const u = await res.json();
+            this.user = {
+              email: u.email,
+              displayName: u.name || (u.email ? u.email.split('@')[0] : 'Reader'),
+              photoUrl: u.picture || null,
+              id: u.sub || ''
+            };
+            await this.db.setSetting('google_user', this.user);
+          }
+        } catch(e) {
+          console.warn('Could not fetch user profile:', e);
+          if (!this.user) {
+            this.user = { email: 'Connected Account', displayName: 'Google User', photoUrl: null, id: '' };
+          }
+        }
+      }
+
+      async signOut() {
+        if (this.accessToken && window.google?.accounts?.oauth2) {
+          try {
+            window.google.accounts.oauth2.revoke(this.accessToken, () => {});
+          } catch(e) {}
+        }
+        this.accessToken = null;
+        this.user = null;
+        this.syncState = { status: 'idle', message: 'Signed out of Google account.', lastSynced: this.syncState.lastSynced, bookCount: 0 };
+        await this.db.setSetting('google_access_token', null);
+        await this.db.setSetting('google_token_expiry', null);
+        await this.db.setSetting('google_user', null);
+        this.notify();
+      }
+
+      debouncedSync(delay = 1800) {
+        if (!this.accessToken) return;
+        clearTimeout(this._debounceTimer);
+        this._debounceTimer = setTimeout(() => {
+          this.sync().catch(e => console.warn('Debounced sync error:', e));
+        }, delay);
+      }
+
+      async sync() {
+        if (!this.accessToken) {
+          this.syncState = { status: 'error', message: 'Sign in with a Google account to sync across devices.' };
+          this.notify();
+          return { success: false, error: 'Not signed in' };
+        }
+
+        this.syncState = { status: 'syncing', message: 'Syncing database with Google Drive AppData…' };
+        this.notify();
+
+        try {
+          // 1. Search for tomi_cloud_sync.json in appDataFolder
+          const searchUrl = `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${SYNC_FILE_NAME}' and trashed=false&fields=files(id,name)`;
+          const searchRes = await fetch(searchUrl, {
+            headers: { Authorization: `Bearer ${this.accessToken}` }
+          });
+
+          if (searchRes.status === 401) {
+            this.accessToken = null;
+            await this.db.setSetting('google_access_token', null);
+            throw new Error('Access token expired. Please sign in again.');
+          }
+          if (!searchRes.ok) {
+            const errText = await searchRes.text();
+            throw new Error(`Drive search failed (${searchRes.status}): ${errText}`);
+          }
+
+          const searchJson = await searchRes.json();
+          const existingFile = (searchJson.files && searchJson.files.length > 0) ? searchJson.files[0] : null;
+
+          let cloudBackup = null;
+          if (existingFile) {
+            const downRes = await fetch(`https://www.googleapis.com/drive/v3/files/${existingFile.id}?alt=media`, {
+              headers: { Authorization: `Bearer ${this.accessToken}` }
+            });
+            if (downRes.ok) {
+              try {
+                cloudBackup = await downRes.json();
+              } catch(e) {
+                console.warn('Failed to parse cloud backup JSON:', e);
+              }
+            }
+          }
+
+          // 2. Local data
+          const localBooks = await this.db.getAllBooks();
+          const localLogs = await this.db.getAllReadingLogs();
+          const currentGoal = (await this.db.getSetting('reading_goal_count')) || 30;
+
+          // 3. Merge Local + Cloud (exact parity with Android CloudSyncManager.kt)
+          const mergedBooks = mergeBooks(localBooks, cloudBackup?.books || []);
+          const mergedLogs = mergeLogs(localLogs, cloudBackup?.logs || []);
+          const mergedGoal = cloudBackup?.annualGoal || currentGoal;
+
+          // 4. Update local DB
+          await this.db.replaceAll(mergedBooks, mergedLogs);
+          await this.db.setSetting('reading_goal_count', mergedGoal);
+
+          // 5. Serialize and upload to Google Drive
+          const payload = {
+            format: "tomi-backup",
+            version: 1,
+            exportedAt: Date.now(),
+            annualGoal: mergedGoal,
+            dailyPageGoal: cloudBackup?.dailyPageGoal || 30,
+            books: mergedBooks.map(b => ({
+              id: b.id,
+              title: b.title || '',
+              authors: b.authors || '',
+              description: b.description || '',
+              pageCount: Number(b.pageCount || 0),
+              currentPage: Number(b.currentPage || 0),
+              status: b.status || 'TBR',
+              notes: typeof b.notes === 'string' ? b.notes : JSON.stringify(b.notes || []),
+              review: b.review || '',
+              rating: Number(b.rating || 0),
+              coverUrl: b.coverUrl || null,
+              isbn: b.isbn || null,
+              genre: b.genre || '',
+              addedDate: Number(b.addedDate || Date.now()),
+              startedDate: b.startedDate ? Number(b.startedDate) : null,
+              completedDate: b.completedDate ? Number(b.completedDate) : null
+            })),
+            logs: mergedLogs.map(l => ({
+              id: l.id || 0,
+              bookId: Number(l.bookId),
+              epochDay: Number(l.epochDay),
+              pagesRead: Number(l.pagesRead || 0),
+              minutes: Number(l.minutes || 0),
+              timestamp: Number(l.timestamp || Date.now())
+            }))
+          };
+
+          const jsonString = JSON.stringify(payload, null, 2);
+
+          if (existingFile) {
+            const updateRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${existingFile.id}?uploadType=media`, {
+              method: 'PATCH',
+              headers: {
+                Authorization: `Bearer ${this.accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: jsonString
+            });
+            if (!updateRes.ok) {
+              throw new Error(`Drive update error (${updateRes.status}): ${await updateRes.text()}`);
+            }
+          } else {
+            const boundary = '-------tomi314159265358979323846';
+            const delimiter = "\r\n--" + boundary + "\r\n";
+            const closeDelim = "\r\n--" + boundary + "--";
+
+            const metadata = JSON.stringify({
+              name: SYNC_FILE_NAME,
+              parents: ['appDataFolder']
+            });
+
+            const multipartBody =
+              delimiter +
+              'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+              metadata +
+              delimiter +
+              'Content-Type: application/json\r\n\r\n' +
+              jsonString +
+              closeDelim;
+
+            const createRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${this.accessToken}`,
+                'Content-Type': `multipart/related; boundary=${boundary}`
+              },
+              body: multipartBody
+            });
+            if (!createRes.ok) {
+              throw new Error(`Drive file creation error (${createRes.status}): ${await createRes.text()}`);
+            }
+          }
+
+          const now = Date.now();
+          await this.db.setSetting('google_last_sync', now);
+
+          this.syncState = {
+            status: 'success',
+            lastSynced: now,
+            bookCount: mergedBooks.length,
+            message: `Synced ${mergedBooks.length} books with Google Drive!`
+          };
+          this.notify();
+
+          if (window.tomiApp) {
+            await window.tomiApp.refreshLibrary();
+          }
+
+          return { success: true, bookCount: mergedBooks.length };
+        } catch (e) {
+          console.error('Google Cloud Sync error:', e);
+          this.syncState = { status: 'error', message: e.message || 'Sync failed.' };
+          this.notify();
+          return { success: false, error: e.message };
+        }
+      }
     }
 
     // --- 5. GOODREADS CSV PARSER ---
@@ -2434,20 +2971,19 @@ Keep answers short and warm (1-2 sentences for audio).`;
         document.documentElement.setAttribute('data-theme', theme);
         document.getElementById('theme-select').value = theme;
 
+        // Auto-seed Gemini key if not present
+        const savedGemini = await db.getSetting('gemini_api_key');
+        if (!savedGemini) {
+          await db.setSetting('gemini_api_key', DEFAULT_GEMINI_KEY);
+        }
+
         this.setupNav();
         this.setupShelves();
         this.setupDiscover();
         this.setupScanner();
         this.setupVoice();
         this.setupSettings();
-
-        // Desktop frame toggle
-        document.getElementById('toggle-device-view')?.addEventListener('click', () => {
-          const host = document.querySelector('.app-host-container');
-          host.classList.toggle('full-window');
-          document.getElementById('toggle-device-view').textContent = host.classList.contains('full-window') ? '📱 Pixel 11 Pro Mode' : '🖥️ Full Window';
-          Haptics.light();
-        });
+        this.setupGoogleSync();
 
         await this.refreshLibrary();
         this.renderCurated();
@@ -2969,6 +3505,7 @@ Keep answers short and warm (1-2 sentences for audio).`;
           currentPage: st === ReadingStatus.FINISHED ? candidate.pageCount : 0
         }));
         await this.refreshLibrary();
+        if (this.cloudSync?.accessToken) this.cloudSync.sync();
         Haptics.success();
         this.toast(`Added "${candidate.title}" to ${statusLabel(st)}!`);
       }
@@ -3119,6 +3656,132 @@ Keep answers short and warm (1-2 sentences for audio).`;
         }
       }
 
+      setupGoogleSync() {
+        this.cloudSync = new GoogleCloudSync(db, (state) => {
+          this.renderGoogleSyncUI(state);
+        });
+        this.cloudSync.init();
+
+        document.getElementById('btn-google-signin')?.addEventListener('click', async () => {
+          Haptics.medium();
+          if (!this.cloudSync.clientId) {
+            this.openOAuthModal();
+          } else {
+            try {
+              await this.cloudSync.signIn();
+              this.toast('Signed in with Google!');
+            } catch (err) {
+              if (err.message === 'MISSING_CLIENT_ID') {
+                this.openOAuthModal();
+              } else {
+                alert(`Sign-in error: ${err.message}`);
+              }
+            }
+          }
+        });
+
+        document.getElementById('btn-oauth-setup-link')?.addEventListener('click', () => this.openOAuthModal());
+        document.getElementById('btn-open-oauth-settings')?.addEventListener('click', () => this.openOAuthModal());
+
+        document.getElementById('btn-google-signout')?.addEventListener('click', async () => {
+          Haptics.light();
+          await this.cloudSync.signOut();
+          this.toast('Signed out of Google account');
+        });
+
+        document.getElementById('btn-sync-now')?.addEventListener('click', async () => {
+          Haptics.medium();
+          const res = await this.cloudSync.sync();
+          if (res.success) {
+            this.toast(`Synced ${res.bookCount} books across devices!`);
+          } else {
+            this.toast(`Sync error: ${res.error}`);
+          }
+        });
+
+        document.getElementById('btn-oauth-sheet-close')?.addEventListener('click', () => {
+          document.getElementById('google-oauth-sheet').classList.remove('open');
+        });
+        document.getElementById('btn-oauth-cancel')?.addEventListener('click', () => {
+          document.getElementById('google-oauth-sheet').classList.remove('open');
+        });
+        document.getElementById('btn-oauth-save')?.addEventListener('click', async () => {
+          const cid = document.getElementById('input-google-client-id').value.trim();
+          const directToken = document.getElementById('input-direct-access-token').value.trim();
+          if (directToken) {
+            await this.cloudSync.signInWithAccessToken(directToken);
+            document.getElementById('google-oauth-sheet').classList.remove('open');
+            this.toast('Connected with Access Token!');
+            return;
+          }
+          if (cid) {
+            await this.cloudSync.setClientId(cid);
+            document.getElementById('google-oauth-sheet').classList.remove('open');
+            try {
+              await this.cloudSync.signIn();
+              this.toast('Signed in with Google!');
+            } catch(e) {
+              alert(`Sign-in error: ${e.message}`);
+            }
+          } else {
+            alert('Please enter a Google OAuth Web Client ID or Access Token.');
+          }
+        });
+      }
+
+      openOAuthModal() {
+        document.getElementById('input-google-client-id').value = this.cloudSync.clientId || DEFAULT_GOOGLE_CLIENT_ID;
+        document.getElementById('input-direct-access-token').value = '';
+        document.getElementById('google-oauth-sheet').classList.add('open');
+      }
+
+      renderGoogleSyncUI(state) {
+        const signedInView = document.getElementById('google-signed-in-view');
+        const signedOutView = document.getElementById('google-signed-out-view');
+        if (!signedInView || !signedOutView) return;
+
+        if (state.isSignedIn) {
+          signedInView.style.display = 'block';
+          signedOutView.style.display = 'none';
+
+          const nameEl = document.getElementById('google-user-name');
+          const emailEl = document.getElementById('google-user-email');
+          const avatarEl = document.getElementById('google-user-avatar');
+
+          if (nameEl) nameEl.textContent = state.user?.displayName || 'Google User';
+          if (emailEl) emailEl.textContent = state.user?.email || '';
+          if (avatarEl) {
+            if (state.user?.photoUrl) {
+              avatarEl.innerHTML = `<img src="${state.user.photoUrl}" alt="${state.user.displayName}" style="width: 100%; height: 100%; object-fit: cover;" />`;
+            } else {
+              avatarEl.textContent = (state.user?.displayName || state.user?.email || 'G').charAt(0).toUpperCase();
+            }
+          }
+
+          const dot = document.getElementById('google-sync-dot');
+          const statusText = document.getElementById('google-sync-status-text');
+          const subText = document.getElementById('google-sync-subtext');
+
+          if (state.syncState.status === 'syncing') {
+            dot.className = 'sync-indicator-dot syncing';
+            statusText.textContent = 'Syncing with Google Drive AppData…';
+            subText.textContent = 'Synchronizing books and reading logs…';
+          } else if (state.syncState.status === 'error') {
+            dot.className = 'sync-indicator-dot error';
+            statusText.textContent = 'Sync Error';
+            subText.textContent = state.syncState.message || 'Check connection or sign in again.';
+          } else {
+            dot.className = 'sync-indicator-dot';
+            statusText.textContent = 'Connected to Google Drive AppData';
+            const timeStr = state.syncState.lastSynced ? new Date(state.syncState.lastSynced).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never';
+            subText.textContent = `Database: tomi_cloud_sync.json • Last synced: ${timeStr}`;
+          }
+        } else {
+          signedInView.style.display = 'none';
+          signedOutView.style.display = 'block';
+        }
+      }
+
       // --- SETTINGS ---
       setupSettings() {
         document.getElementById('theme-select')?.addEventListener('change', async (e) => {
@@ -3137,11 +3800,6 @@ Keep answers short and warm (1-2 sentences for audio).`;
         document.getElementById('setting-gemini-key')?.addEventListener('change', async (e) => {
           await db.setSetting('gemini_api_key', e.target.value.trim());
           this.toast('Gemini API key saved');
-        });
-
-        document.getElementById('setting-books-key')?.addEventListener('change', async (e) => {
-          await db.setSetting('google_books_api_key', e.target.value.trim());
-          this.toast('Google Books API key saved');
         });
 
         // Goodreads File Input
@@ -3228,8 +3886,8 @@ Keep answers short and warm (1-2 sentences for audio).`;
 
       async loadSettings() {
         document.getElementById('setting-goal-input').value = (await db.getSetting('reading_goal_count')) || 30;
-        document.getElementById('setting-gemini-key').value = (await db.getSetting('gemini_api_key')) || '';
-        document.getElementById('setting-books-key').value = (await db.getSetting('google_books_api_key')) || '';
+        const gemKey = (await db.getSetting('gemini_api_key')) || DEFAULT_GEMINI_KEY;
+        document.getElementById('setting-gemini-key').value = gemKey;
       }
 
       async importGoodreads(csv) {
