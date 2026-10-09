@@ -2499,7 +2499,7 @@
           try {
             const tokenClient = window.google.accounts.oauth2.initTokenClient({
               client_id: clientId,
-              scope: 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email openid',
+              scope: 'https://www.googleapis.com/auth/drive.appdata email profile',
               callback: async (resp) => {
                 if (resp.error) {
                   this.syncState = { status: 'error', message: `Sign-in error: ${resp.error_description || resp.error}` };
@@ -2518,7 +2518,7 @@
                 resolve(this.user);
               }
             });
-            tokenClient.requestAccessToken({ prompt: '' });
+            tokenClient.requestAccessToken();
           } catch (err) {
             reject(err);
           }
