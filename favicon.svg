@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <defs>
+    <clipPath id="squircle">
+      <rect width="108" height="108" rx="24" ry="24" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#squircle)">
+    <!-- Walnut wood background -->
+    <rect width="108" height="108" fill="#5D4037" />
+    <!-- Walnut grain stripes -->
+    <path fill="#4E342E" d="M0,18 C30,14 70,22 108,16 L108,20 C70,26 30,18 0,22 Z" />
+    <path fill="#4E342E" d="M0,84 C34,80 72,90 108,84 L108,88 C72,94 34,84 0,88 Z" />
+    <!-- Teal atomic disc -->
+    <circle cx="54" cy="54" r="30" fill="#12736B" />
+    <!-- Mustard MCM starburst -->
+    <path fill="#FFB300" d="M54,26 L57,46 L74,34 L62,51 L82,54 L62,57 L74,74 L57,62 L54,82 L51,62 L34,74 L46,57 L26,54 L46,51 L34,34 L51,46 Z" />
+    <!-- Book shadow -->
+    <path fill="#2D2D2D" d="M34,46 C42,42 50,43 56,47 C62,43 70,42 78,46 L78,74 C70,70 62,71 56,75 C50,71 42,70 34,74 Z" />
+    <!-- Open book pages -->
+    <path fill="#FAF5EC" d="M31,43 C39,39 47,40 53,44 L53,72 C47,68 39,67 31,71 Z" />
+    <path fill="#F1EAE2" d="M53,44 C59,40 67,39 75,43 L75,71 C67,67 59,68 53,72 Z" />
+    <!-- Page lines -->
+    <path stroke="#5D4037" stroke-width="1.4" stroke-linecap="round" fill="none" d="M36,50 C40,48 44,48 48,50 M36,56 C40,54 44,54 48,56 M58,50 C62,48 66,48 70,50 M58,56 C62,54 66,54 70,56" />
+    <!-- Terracotta bookmark -->
+    <path fill="#E64A19" d="M64,41 L69,40 L69,58 L66.5,55 L64,58 Z" />
+  </g>
+</svg>
