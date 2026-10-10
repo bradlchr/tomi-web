@@ -2002,8 +2002,10 @@
                 4. Under <strong>Authorized JavaScript origins</strong>, add:<br>
                 &nbsp;&nbsp;• <code>https://bradlchr.github.io</code><br>
                 &nbsp;&nbsp;• <code>http://localhost:8080</code> (for local testing)<br>
-                5. In <strong>Enabled APIs</strong>, make sure <em>Google Drive API</em> is enabled.<br>
-                6. Paste your Web Client ID below.
+                5. In <strong>Enabled APIs & Services</strong>, make sure <em>Google Drive API</em> is enabled.<br>
+                6. In <strong>OAuth consent screen → Scopes</strong>, ensure <code>.../auth/drive.appdata</code> is added to your project's scopes.<br>
+                7. When signing in, ensure the checkbox for <em>Google Drive AppData</em> is checked.<br>
+                8. Paste your Web Client ID below.
               </div>
               <div style="margin-bottom: 12px;">
                 <label style="font-size: 11px; font-weight: 700; color: var(--text-subtle); text-transform: uppercase;">OAuth 2.0 Web Client ID</label>
@@ -2767,6 +2769,26 @@
                   this.notify();
                   return reject(new Error(resp.error_description || resp.error));
                 }
+
+                // Verify whether Google Drive AppData scope was granted
+                const hasDriveScope = window.google?.accounts?.oauth2?.hasGrantedAllScopes ?
+                  window.google.accounts.oauth2.hasGrantedAllScopes(resp, 'https://www.googleapis.com/auth/drive.appdata') :
+                  ((resp.scope || '').includes('drive.appdata'));
+
+                if (!hasDriveScope) {
+                  this.accessToken = null;
+                  this.user = null;
+                  await this.db.setSetting('google_access_token', null);
+                  await this.db.setSetting('google_token_expiry', null);
+                  await this.db.setSetting('google_user', null);
+                  this.syncState = {
+                    status: 'error',
+                    message: 'Google Drive permission was not granted. Please sign in again and ensure the "See, edit, create, and delete only its own configuration data in Google Drive" checkbox is checked so Tomi can sync your books.'
+                  };
+                  this.notify();
+                  return reject(new Error('Google Drive permission was not granted. Please check the permission box in Google Sign-In.'));
+                }
+
                 this.accessToken = resp.access_token;
                 const expiresIn = (Number(resp.expires_in) || 3599) * 1000;
                 await this.db.setSetting('google_access_token', this.accessToken);
@@ -2779,7 +2801,7 @@
                 resolve(this.user);
               }
             });
-            tokenClient.requestAccessToken();
+            tokenClient.requestAccessToken({ prompt: 'consent' });
           } catch (err) {
             reject(err);
           }
@@ -2861,7 +2883,18 @@
           if (searchRes.status === 401) {
             this.accessToken = null;
             await this.db.setSetting('google_access_token', null);
-            throw new Error('Access token expired. Please sign in again.');
+            await this.db.setSetting('google_token_expiry', null);
+            throw new Error('Access token expired. Please sign out and sign in again.');
+          }
+          if (searchRes.status === 403) {
+            const errText = await searchRes.text();
+            this.accessToken = null;
+            await this.db.setSetting('google_access_token', null);
+            await this.db.setSetting('google_token_expiry', null);
+            if (errText.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') || errText.includes('insufficient')) {
+              throw new Error('Google Drive permission missing (403). Your sign-in token does not have permission to access Google Drive AppData. Please click "Sign out" above, then "Sign in with Google", and make sure to check the Google Drive permission checkbox.');
+            }
+            throw new Error(`Google Drive permission denied (403): ${errText}`);
           }
           if (!searchRes.ok) {
             const errText = await searchRes.text();
@@ -2876,6 +2909,12 @@
             const downRes = await fetch(`https://www.googleapis.com/drive/v3/files/${existingFile.id}?alt=media`, {
               headers: { Authorization: `Bearer ${this.accessToken}` }
             });
+            if (downRes.status === 401 || downRes.status === 403) {
+              this.accessToken = null;
+              await this.db.setSetting('google_access_token', null);
+              await this.db.setSetting('google_token_expiry', null);
+              throw new Error('Google Drive access expired or denied (403). Please sign out and sign in again.');
+            }
             if (downRes.ok) {
               try {
                 cloudBackup = await downRes.json();
@@ -2946,6 +2985,12 @@
               },
               body: jsonString
             });
+            if (updateRes.status === 401 || updateRes.status === 403) {
+              this.accessToken = null;
+              await this.db.setSetting('google_access_token', null);
+              await this.db.setSetting('google_token_expiry', null);
+              throw new Error('Google Drive access expired or denied (403) while updating backup. Please sign out and sign in again.');
+            }
             if (!updateRes.ok) {
               throw new Error(`Drive update error (${updateRes.status}): ${await updateRes.text()}`);
             }
@@ -2976,6 +3021,12 @@
               },
               body: multipartBody
             });
+            if (createRes.status === 401 || createRes.status === 403) {
+              this.accessToken = null;
+              await this.db.setSetting('google_access_token', null);
+              await this.db.setSetting('google_token_expiry', null);
+              throw new Error('Google Drive access expired or denied (403) while creating backup. Please sign out and sign in again.');
+            }
             if (!createRes.ok) {
               throw new Error(`Drive file creation error (${createRes.status}): ${await createRes.text()}`);
             }
@@ -4694,6 +4745,18 @@ Keep answers short and warm (1-2 sentences for audio).`;
 
         document.getElementById('btn-sync-now')?.addEventListener('click', async () => {
           Haptics.medium();
+          if (!this.cloudSync.accessToken) {
+            try {
+              this.toast('Connecting to Google Drive…');
+              await this.cloudSync.signIn();
+              this.toast('Connected and synced with Google Drive!');
+            } catch (err) {
+              if (err.message !== 'Google Drive permission was not granted.') {
+                this.toast(`Sign-in: ${err.message}`);
+              }
+            }
+            return;
+          }
           const res = await this.cloudSync.sync();
           if (res.success) {
             this.toast(`Synced ${res.bookCount} books across devices!`);
