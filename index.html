@@ -893,28 +893,35 @@
 
     /* Toast */
     .toast-notice {
-      position: absolute;
-      top: calc(var(--header-height) + var(--sat) + 12px);
-      left: 20px;
-      right: 20px;
+      position: fixed;
+      bottom: calc(var(--nav-height) + var(--sab) + 16px);
+      left: 50%;
+      top: auto;
+      right: auto;
+      transform: translateX(-50%) translateY(20px);
       background: var(--mcm-espresso);
       color: var(--mcm-paper);
       border: 1.5px solid var(--border-bold);
       border-radius: var(--radius-md);
-      padding: 12px 18px;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+      padding: 10px 20px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
       display: flex;
       align-items: center;
       gap: 12px;
-      z-index: 200;
-      transform: translateY(-80px);
+      z-index: 9999;
       opacity: 0;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: min(90vw, 420px);
+      width: max-content;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
       pointer-events: none;
     }
-    .toast-notice.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .toast-notice.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
     .toast-icon { font-size: 20px; color: var(--accent-mustard); }
-    .toast-text { font-size: 13px; font-weight: 600; line-height: 1.35; }
+    .toast-text { font-size: 13px; font-weight: 600; line-height: 1.35; white-space: normal; }
 
     /* ==========================================================================
        5. SCREEN SPECIFIC STYLES
@@ -2117,7 +2124,8 @@
         genre: String(d.genre || ''),
         addedDate: d.addedDate || now,
         startedDate: d.startedDate || (d.status === ReadingStatus.READING ? now : null),
-        completedDate: d.completedDate || (d.status === ReadingStatus.FINISHED ? now : null)
+        completedDate: d.completedDate || (d.status === ReadingStatus.FINISHED ? now : null),
+        updatedAt: d.updatedAt || now
       };
     }
 
@@ -2213,6 +2221,7 @@
       book.status = status;
       book.startedDate = started;
       book.completedDate = completed;
+      book.updatedAt = now;
 
       return { delta, now, isFinished: status === ReadingStatus.FINISHED && page >= (book.pageCount || 1) };
     }
@@ -2374,6 +2383,7 @@
 
       async updateBook(b) {
         await this.init();
+        b.updatedAt = Date.now();
         return new Promise((resolve) => {
           const tx = this.db.transaction('books', 'readwrite');
           tx.objectStore('books').put(b);
@@ -2398,12 +2408,15 @@
 
       async addReadingLog(log) {
         await this.init();
+        const localNow = new Date();
+        const localEpochDay = Math.floor((Date.now() - localNow.getTimezoneOffset() * 60000) / 86400000);
         return new Promise((resolve) => {
           const tx = this.db.transaction('reading_logs', 'readwrite');
           tx.objectStore('reading_logs').add({
             bookId: Number(log.bookId),
-            epochDay: Number(log.epochDay || Math.floor(Date.now() / 86400000)),
+            epochDay: Number(log.epochDay || localEpochDay),
             pagesRead: Number(log.pagesRead || 0),
+            minutes: Number(log.minutes || 0),
             timestamp: Number(log.timestamp || Date.now())
           });
           tx.oncomplete = () => resolve(true);
@@ -2561,6 +2574,15 @@
       return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     }
 
+    function effectiveLastModified(b) {
+      return Math.max(
+        Number(b.updatedAt || 0),
+        Number(b.completedDate || 0),
+        Number(b.startedDate || 0),
+        Number(b.addedDate || 0)
+      );
+    }
+
     function mergeBooks(local, cloud) {
       const result = [];
       const visitedCloudIds = new Set();
@@ -2573,14 +2595,11 @@
 
         if (match) {
           visitedCloudIds.add(match.id);
+          const locTime = effectiveLastModified(loc);
+          const cloudTime = effectiveLastModified(match);
+          const winner = (locTime >= cloudTime) ? loc : match;
+
           const maxPages = Math.max(Number(loc.pageCount || 0), Number(match.pageCount || 0));
-          const maxProgress = Math.max(Number(loc.currentPage || 0), Number(match.currentPage || 0));
-          
-          let status = 'TBR';
-          if (loc.status === 'FINISHED' || match.status === 'FINISHED') status = 'FINISHED';
-          else if (loc.status === 'READING' || match.status === 'READING') status = 'READING';
-          else if (loc.status === 'DNF' || match.status === 'DNF') status = 'DNF';
-          else status = 'TBR';
 
           const parseNotes = (n) => {
             if (!n) return [];
@@ -2596,20 +2615,18 @@
           });
           const mergedNotes = Array.from(notesMap.values());
 
-          const startedDates = [loc.startedDate, match.startedDate].filter(d => d != null && d > 0);
-          const completedDates = [loc.completedDate, match.completedDate].filter(d => d != null && d > 0);
-
           result.push({
             ...loc,
             pageCount: maxPages,
-            currentPage: (status === 'FINISHED' && maxPages > 0) ? maxPages : Math.min(maxProgress, maxPages > 0 ? maxPages : 99999),
-            status: status,
-            rating: Math.max(Number(loc.rating || 0), Number(match.rating || 0)),
-            review: (loc.review && loc.review.trim()) ? loc.review : (match.review || ''),
+            currentPage: (winner.status === 'FINISHED' && maxPages > 0) ? maxPages : Number(winner.currentPage || 0),
+            status: winner.status,
+            rating: Number(winner.rating || 0),
+            review: (winner.review && winner.review.trim()) ? winner.review : ((winner === loc ? match.review : loc.review) || ''),
             notes: JSON.stringify(mergedNotes),
-            coverUrl: loc.coverUrl || match.coverUrl || null,
-            startedDate: startedDates.length > 0 ? Math.min(...startedDates) : null,
-            completedDate: completedDates.length > 0 ? Math.max(...completedDates) : null,
+            coverUrl: winner.coverUrl || (winner === loc ? match.coverUrl : loc.coverUrl) || null,
+            startedDate: winner.startedDate ? Number(winner.startedDate) : null,
+            completedDate: winner.completedDate ? Number(winner.completedDate) : null,
+            updatedAt: Math.max(locTime, cloudTime),
           });
         } else {
           result.push({
@@ -2637,24 +2654,37 @@
       return result;
     }
 
-    function mergeLogs(local, cloud) {
-      const map = new Map();
-      const key = (l) => `${l.bookId}_${l.epochDay}`;
-      for (const l of local) map.set(key(l), { ...l });
-      for (const c of cloud) {
-        const k = key(c);
-        const existing = map.get(k);
-        if (!existing) {
-          map.set(k, { ...c });
-        } else {
-          map.set(k, {
-            ...existing,
-            pagesRead: Math.max(Number(existing.pagesRead || 0), Number(c.pagesRead || 0)),
-            minutes: Math.max(Number(existing.minutes || 0), Number(c.minutes || 0)),
-          });
+    function mergeLogs(local, cloud, localBooks = [], cloudBooks = []) {
+      const cloudToLocalMap = new Map();
+      for (const loc of localBooks) {
+        const match = cloudBooks.find(c =>
+          (loc.isbn && c.isbn && String(loc.isbn).trim() === String(c.isbn).trim()) ||
+          (norm(loc.title) === norm(c.title) && norm(loc.authors) === norm(c.authors))
+        );
+        if (match && match.id !== loc.id) {
+          cloudToLocalMap.set(Number(match.id), Number(loc.id));
         }
       }
-      return Array.from(map.values());
+
+      const normalizedCloud = cloud.map(c => ({
+        ...c,
+        bookId: cloudToLocalMap.get(Number(c.bookId)) || Number(c.bookId)
+      }));
+
+      const result = [...local];
+      for (const c of normalizedCloud) {
+        const duplicate = result.find(l =>
+          (l.id && c.id && Number(l.id) === Number(c.id)) ||
+          (Number(l.bookId) === Number(c.bookId) && Number(l.epochDay) === Number(c.epochDay) && Math.abs(Number(l.timestamp || 0) - Number(c.timestamp || 0)) < 5000)
+        );
+        if (!duplicate) {
+          result.push(c);
+        } else {
+          duplicate.pagesRead = Math.max(Number(duplicate.pagesRead || 0), Number(c.pagesRead || 0));
+          duplicate.minutes = Math.max(Number(duplicate.minutes || 0), Number(c.minutes || 0));
+        }
+      }
+      return result;
     }
 
     class GoogleCloudSync {
@@ -2862,7 +2892,7 @@
 
           // 3. Merge Local + Cloud (exact parity with Android CloudSyncManager.kt)
           const mergedBooks = mergeBooks(localBooks, cloudBackup?.books || []);
-          const mergedLogs = mergeLogs(localLogs, cloudBackup?.logs || []);
+          const mergedLogs = mergeLogs(localLogs, cloudBackup?.logs || [], localBooks, cloudBackup?.books || []);
           const mergedGoal = cloudBackup?.annualGoal || currentGoal;
 
           // 4. Update local DB
@@ -2892,7 +2922,8 @@
               genre: b.genre || '',
               addedDate: Number(b.addedDate || Date.now()),
               startedDate: b.startedDate ? Number(b.startedDate) : null,
-              completedDate: b.completedDate ? Number(b.completedDate) : null
+              completedDate: b.completedDate ? Number(b.completedDate) : null,
+              updatedAt: Number(b.updatedAt || 0)
             })),
             logs: mergedLogs.map(l => ({
               id: l.id || 0,
@@ -4160,13 +4191,23 @@ Keep answers short and warm (1-2 sentences for audio).`;
             if (book.status === targetStatus) return;
 
             book.status = targetStatus;
+            const now = Date.now();
+            book.updatedAt = now;
             if (targetStatus === ReadingStatus.FINISHED) {
               if (book.pageCount > 0) book.currentPage = book.pageCount;
-              book.completedDate = book.completedDate || Date.now();
+              book.completedDate = book.completedDate || now;
+              book.startedDate = book.startedDate || now;
               Haptics.success();
               this.toast(`🎉 You finished "${book.title}"!`);
-            } else if (book.completedDate) {
+            } else if (targetStatus === ReadingStatus.TBR) {
+              book.currentPage = 0;
+              book.startedDate = null;
               book.completedDate = null;
+            } else if (targetStatus === ReadingStatus.READING) {
+              book.completedDate = null;
+              book.startedDate = book.startedDate || now;
+            } else if (targetStatus === ReadingStatus.DNF) {
+              book.completedDate = now;
             }
 
             await db.updateBook(book);
